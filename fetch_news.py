@@ -11,35 +11,33 @@ RSS_URLS = [
     "https://www.info.gov.hk/gia/rss/general/ctoday.xml" # 政府综合新闻(含HR案例)
 ]
 
-def get_ai_summary(news_list):
+def get_ai_summary(text_content):
     api_key = os.getenv("AI_API_KEY")
-    # 这里使用的是 DeepSeek 的 API 地址，你也可以换成 OpenAI
     url = "https://api.deepseek.com/v1/chat/completions"
     
-    combined_text = "\n".join([f"- {n['title']}: {n['link']}" for n in news_list[:15]])
+    headers = {
+        "Authorization": f"Bearer {api_key}",
+        "Content-Type": "application/json"
+    }
     
-    prompt = f"""
-    你是一位专业的香港金融与HR顾问。请从以下新闻中筛选出：
-    1. 与HR、劳工法律、人才政策相关的案例。
-    2. 重要的金融时政热点。
-    
-    请用精炼的繁体中文总结，每条包含：【标题】、简短【核心内容】、以及【行业建议】。
-    今日新闻内容：
-    {combined_text}
-    """
-    
-    headers = {"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"}
     payload = {
         "model": "deepseek-chat",
-        "messages": [{"role": "system", "content": "你是一个专业的资讯分析助手。"},
-                     {"role": "user", "content": prompt}]
+        "messages": [{"role": "user", "content": f"总结以下内容：{text_content}"}]
     }
     
     try:
         response = requests.post(url, headers=headers, json=payload)
-        return response.json()['choices'][0]['message']['content']
+        res_json = response.json()
+        
+        # 如果返回了正常结果
+        if 'choices' in res_json:
+            return res_json['choices'][0]['message']['content']
+        # 如果 API 返回了错误信息，把错误信息显示出来
+        else:
+            return f"AI 接口报错了：{res_json.get('error', {}).get('message', '未知错误')}"
+            
     except Exception as e:
-        return f"AI 总结失败: {str(e)}"
+        return f"网络请求失败：{str(e)}"
 
 # 2. 抓取逻辑
 all_news = []
