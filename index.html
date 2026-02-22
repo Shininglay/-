@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HK Finance & HR Daily</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { background-color: #f2f2f7; }
+        .glass-card { background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(10px); border-radius: 15px; }
+        pre { white-space: pre-wrap; word-wrap: break-word; font-family: inherit; }
+    </style>
+</head>
+<body class="p-5">
+    <div class="max-w-md mx-auto">
+        <header class="mb-6">
+            <h1 class="text-3xl font-bold text-gray-800">每日简报</h1>
+            <p id="date" class="text-sm text-gray-500">正在获取最新资讯...</p>
+        </header>
+
+        <div class="glass-card p-6 shadow-sm border border-white">
+            <div id="content" class="text-gray-700 leading-relaxed text-lg">
+                正在通过 AI 引擎生成报告，请稍候...
+            </div>
+        </div>
+
+        <footer class="mt-8 text-center text-xs text-gray-400">
+            数据源：HKMA, SFC, GovHK | 由 GitHub Actions 自动更新
+        </footer>
+    </div>
+
+    <script>
+        fetch('./data.json?t=' + new Date().getTime())
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('date').innerText = "更新时间: " + data.last_updated;
+                // 将 AI 返回的换行符转换为 HTML 换行
+                document.getElementById('content').innerHTML = `<pre>${data.report}</pre>`;
+            })
+            .catch(err => {
+                document.getElementById('content').innerText = "暂无数据，请检查 GitHub Actions 运行状态。";
+            });
+    </script>
+</body>
+</html>
